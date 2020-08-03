@@ -3,6 +3,7 @@ class ElementWrapper{
         this.root = document.createElement(type);
     }
     setAttribute(name,value){
+        console.log(name,value)
         this.root.setAttribute(name,value);
     }
     appendChild(vchild){
@@ -17,33 +18,65 @@ class TextWrapper{
     constructor(content){
         this.root = document.createTextNode(content)
     }
+    mountTo(parent){
+        parent.appendChild(this.root)
+    }
+}
+export class  Component{
+    constructor(){
+        this.children=[];
+    }
     mountTo(patent){
-        parent.appendChildthis.root
+        let vdom = this.render();
+        vdom.mountTo(patent)
+    }
+    setAttribute(name,value){
+        this[name]=value;
+    }
+    appendChild(vchild){
+        this.children.push(vchild);
     }
 }
 
 export let ToyReact = {
     createElement(type,attributes,...children){
-
-        // debugger
-        console.log(arguments)
+        
+        let element ;
         console.log(type)
-        console.log(attributes)
-        console.log(children)
-        console.log("======")
-        let element = document.createElement(type);
+        if(typeof type === 'string'){
+            element = new ElementWrapper(type);
+        }
+        else{
+            element = new type;
+        }
         for(let name in attributes){
             element.setAttribute(name,attributes[name]);
         }
-        for(let child of children){
-            if(typeof child === 'string'){
-                child = document.createTextNode(child);
+        let insertChildren = (children)=>{
+
+            for(let child of children){
+                console.log(111)
+                console.log(child)
+                if(typeof child ==='object' && child instanceof Array){
+                    insertChildren(child)
+                }
+                else{
+                    if(!(child instanceof Component)&&
+                    !(child instanceof ElementWrapper)&&
+                    !(child instanceof TextWrapper))
+                        child = String(child)
+                    
+                    if(typeof child === 'string')
+                        child = new TextWrapper(child)
+                    element.appendChild(child);
+                }
             }
-            element.appendChild(child);
         }
+        insertChildren(children)
         return element;
     },
     render(vdom,element){
+        console.log(vdom)
         vdom.mountTo(element);
 
     }
